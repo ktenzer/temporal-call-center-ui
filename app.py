@@ -6,8 +6,13 @@ app = Flask(__name__)
 CALL_POOL_WORKFLOW="callpool-test"
 
 @dataclass
+class AddAgent:
+    name: str
+    number: str  
+
+@dataclass
 class RemoveAgent:
-    agent: str  
+    name: str
 
 @app.route("/")
 def home():
@@ -30,14 +35,22 @@ async def data():
     })
 
 @app.route('/add_agent', methods=['GET', 'POST'])
-def add_agent():
+async def add_agent():
     if request.method == 'POST':
+        client = await get_client()
+        call_pool_workflow = client.get_workflow_handle(f'{CALL_POOL_WORKFLOW}')
         name = request.form.get('name')
         number = request.form.get('number')
         # Add code to send remove signal
         
         # After adding the agent, redirect to the dashboard.
+        add_agent = AddAgent(
+            name=name,
+            number=number
+        )            
+        await call_pool_workflow.signal("addAgent", add_agent)
         return redirect(url_for('home'))
+    
     return render_template('add_agent.html')
 
 @app.route("/remove_agent")
@@ -59,17 +72,16 @@ async def remove_agent():
     available_agents = [agent for agent in available_agents if agent['name'] != name and agent['number'] != number]
 
     remove_agent = RemoveAgent(
-        agent=name
+        name=name
     )    
 
-    #await call_pool_workflow.signal("removeAgent", remove_agent)
+    await call_pool_workflow.signal("removeAgent", remove_agent)
 
     # Return the updated data
     return jsonify({
         'calls': calls,
         'available_agents': available_agents
     })
-
 
 if __name__ == "__main__":
     app.run(debug=True)
