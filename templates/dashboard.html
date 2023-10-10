@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Center Dashboard</title>
+</head>
+<body>
+    <h1>Call Center Dashboard</h1>
+
+    <h3 class="mt-4">Call Status</h3>
+    <table id="calls">
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Sid</th>
+                <th>Caller</th>
+                <th>Agent</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be inserted here through JavaScript -->
+        </tbody>        
+    </table>
+
+    <h3 class="mt-4">Available Agents</h3>
+    <table id="available_agents">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Number</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be inserted here through JavaScript -->
+        </tbody>
+    </table>
+    <a href="/add_agent" class="btn btn-dark my-3">Add Agent</a>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+
+{% endblock %}

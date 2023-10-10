@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Agent</title>
+  <style>
+    /* Custom CSS to ensure no borders on the table, th, or td elements */
+    .no-border table, .no-border th, .no-border td {
+        border: none !important;
+    }
+  </style>  
+</head>
+<body class="container">
+  <h1 class="mt-4">Add New Agent</h1>
+  
+  <form method="POST" action="/add_agent">
+    <table class="table no-border">
+        <tr>
+            <td><label for="name">Agent Name:</label></td>
+            <td><input type="text" id="name" name="name" class="form-control" required></td>
+        </tr>
+        <tr>
+          <td><label for="number">Agent Number:</label></td>
+          <td>
+              <input type="tel" id="number" name="number" class="form-control" pattern="\+1\d{3}\d{3}\d{4}" required>
+              <small class="invalid-feedback">Not a valid US phone number.</small>
+          </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>
+                <button type="submit" class="btn btn-dark">Submit</button>
+                <a href="/" class="btn btn-secondary">Cancel</a>
+            </td>
+        </tr>
+    </table>
+</form>
+<script>
+  document.getElementById("number").addEventListener("input", function(e){
+      var input = e.target;
+      var isValid = /^\+1\d{10}$/.test(input.value);
+      
+      if (isValid) {
+          input.setCustomValidity("");
+      } else {
+          input.setCustomValidity("Not a valid US phone number.");
+      }
+  });
+  
+  document.getElementById("agentForm").addEventListener("submit", function(e){
+      var numberInput = document.getElementById("number");
+      var isValid = numberInput.checkValidity();
+      
+      if (!isValid) {
+          e.preventDefault(); // Prevent form submission
+          alert("Please ensure the number is valid and try again."); // Show alert
+      }
+  });
+</script>
+</body>
+
+{% endblock %}
