@@ -16,6 +16,7 @@ class CallInput:
     From: str
     To: str
     Routing: str
+    TemporalTaskQueue: str
 
 @dataclass
 class AddAgent:
@@ -37,16 +38,25 @@ async def data():
     client = await get_client()
     call_pool_workflow = client.get_workflow_handle(f'{CALL_POOL_WORKFLOW}')
 
-    # Get calls via query to pool workflow
-    calls = await call_pool_workflow.query("calls")
+    desc = await call_pool_workflow.describe()
 
-    # Get available agents via query to pool workflow
-    available_agents = await call_pool_workflow.query("available_agents")
+    # Check if workflow is running
+    if (desc.status == 1):  
+        # Get calls via query to pool workflow
+        calls = await call_pool_workflow.query("calls")
 
-    return jsonify({
-        'calls': calls,
-        'available_agents': available_agents
-    })
+        # Get available agents via query to pool workflow
+        available_agents = await call_pool_workflow.query("available_agents")
+
+        return jsonify({
+            'calls': calls,
+            'available_agents': available_agents
+        })
+    else:
+        return jsonify({
+            'calls': [],
+            'available_agents': []
+        })
 
 # Route to add a new agent to the call pool workflow
 @app.route('/add_agent', methods=['GET', 'POST'])
@@ -116,12 +126,12 @@ async def voice_status():
 # Route for providing twilio webhook to start call workflow for managing call
 @app.route("/voice", methods=['POST'])
 async def voice():
-    call_to=request.form['From']
-    call_from=request.form['To']
+    call_to=request.form['To']
+    call_from=request.form['From']
     call_sid=request.form['CallSid']
 
     response = VoiceResponse()
-    response.say('Thank you for calling Temporal Support.');
+    response.say('Thank you for calling Temporal Support.')
     response.say('Please wait while I connect you to the next available agent.')
     response.play('https://flaky-account-8453.twil.io/assets/sample.mp3')
 
@@ -129,7 +139,8 @@ async def voice():
         CallSid=call_sid,
         From=call_from,
         To=call_to,
-        Routing=ROUTING_METHOD
+        Routing=ROUTING_METHOD,
+        TemporalTaskQueue=os.getenv("TEMPORAL_TASK_QUEUE")
     ) 
 
     client = await get_client()
@@ -144,4 +155,4 @@ async def voice():
     return str(response)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True) 

@@ -1,0 +1,18 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  labels:
+    app: temporal-call-center-ui
+  name: ingressroute-temporal-call-center-http
+spec:
+  entryPoints:
+  - web
+  routes:
+  - kind: Rule
+    match: Host(`support.tmprl-demo.cloud`)
+    services:
+    - name: ui
+      passHostHeader: true
+      port: 5000
+      responseForwarding:
+        flushInterval: 100ms
