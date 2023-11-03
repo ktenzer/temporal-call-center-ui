@@ -17,6 +17,7 @@ class CallInput:
     To: str
     Routing: str
     TemporalTaskQueue: str
+    isCallDelay: bool
 
 @dataclass
 class AddAgent:
@@ -63,16 +64,17 @@ async def data():
 async def add_agent():
     if request.method == 'POST':
         client = await get_client()
-        call_pool_workflow = client.get_workflow_handle(f'{CALL_POOL_WORKFLOW}')
         name = request.form.get('name')
-        number = request.form.get('number')
-        
-        # After adding the agent, redirect to the dashboard.
-        add_agent = AddAgent(
-            name=name,
-            number=number
-        )            
-        await call_pool_workflow.signal("addAgent", add_agent)
+        number = request.form.get('number')     
+
+        await client.start_workflow(
+            "callPoolWorkflow",
+            id=CALL_POOL_WORKFLOW,
+            task_queue=os.getenv("TEMPORAL_TASK_QUEUE"),
+            start_signal="addAgent",
+            start_signal_args=[{'name': name,'number': number}],
+        )
+
         return redirect(url_for('home'))
     
     return render_template('add_agent.html')
@@ -140,7 +142,8 @@ async def voice():
         From=call_from,
         To=call_to,
         Routing=ROUTING_METHOD,
-        TemporalTaskQueue=os.getenv("TEMPORAL_TASK_QUEUE")
+        TemporalTaskQueue=os.getenv("TEMPORAL_TASK_QUEUE"),
+        isCallDelay=False
     ) 
 
     client = await get_client()
